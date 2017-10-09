@@ -22,8 +22,11 @@ Background: movies have been added to database
   And I am on the RottenPotatoes home page
 
 Scenario: sort movies alphabetically
-  # your scenario here
+  When I have opted to sort movies alphabetically
+  Then I should see the list of movies in alphabetical order
 
 Scenario: sort movies in increasing order of release date
+  When I have opted to sort movies in increasing order of release date
+  Then I should see older movies before I see newer movies
   # your scenario here
 

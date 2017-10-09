@@ -28,7 +28,7 @@ Given /^I am on the RottenPotatoes home page$/ do
    click_on "More about #{title}"
  end
 
- Then /^(?:|I )should see "([^"]*)"$/ do |text|
+ Then /^(?:|I )should see "([^\"]*)"$/ do |text|
     expect(page).to have_content(text)
  end
 
@@ -42,32 +42,74 @@ Given /^I am on the RottenPotatoes home page$/ do
 # New step definitions to be completed for HW5. 
 # Note that you may need to add additional step definitions beyond these
 
+When /^I have opted to sort movies alphabetically$/ do
+    visit movies_path
+    click_link 'title_header'
+end
 
+Then /^I should see the list of movies in alphabetical order$/ do
+    total_count = 0
+    page.all('table#movies tr/td[1]').each do |tr|
+        first = tr.text
+        inner_count = 0
+        page.all('table#movies tr/td[1]').each do |tr_2|
+            if (total_count < inner_count)
+                second = tr_2.text
+                expect(first < second).to be_truthy
+            end
+            inner_count += 1
+        end
+        total_count += 1
+    end
+end
+
+When /^I have opted to sort movies in increasing order of release date$/ do
+    visit movies_path
+    click_link 'release_date_header'
+end
+
+Then /^I should see older movies before I see newer movies$/ do
+    total_count = 0
+    page.all('table#movies tr/td[3]').each do |tr|
+        first = tr.text
+        inner_count = 0
+        page.all('table#movies tr/td[3]').each do |tr_2|
+            if (total_count < inner_count)
+                second = tr_2.text
+                expect(first < second).to be_truthy
+            end
+            inner_count += 1
+        end
+        total_count += 1
+    end
+end
+    
 # Add a declarative step here for populating the DB with movies.
 
 Given /the following movies have been added to RottenPotatoes:/ do |movies_table|
-  pending  # Remove this statement when you finish implementing the test step
   movies_table.hashes.each do |movie|
-    # Each returned movie will be a hash representing one row of the movies_table
-    # The keys will be the table headers and the values will be the row contents.
-    # Entries can be directly to the database with ActiveRecord methods
-    # Add the necessary Active Record call(s) to populate the database.
+      Movie.create(movie)
   end
 end
 
 When /^I have opted to see movies rated: "(.*?)"$/ do |arg1|
-  # HINT: use String#split to split up the rating_list, then
-  # iterate over the ratings and check/uncheck the ratings
-  # using the appropriate Capybara command(s)
-  pending  #remove this statement after implementing the test step
+    visit movies_path
+    ['G', 'PG', 'PG-13', 'NC-17', 'R'].each { |rating| uncheck( "ratings_#{rating}" ) }
+    rating_list = arg1.split( /[\s,]+/ )
+    rating_list.each { |rating| check( "ratings_#{rating}" ) }
+    click_button 'ratings_submit'
 end
 
 Then /^I should see only movies rated: "(.*?)"$/ do |arg1|
-  pending  #remove this statement after implementing the test step
+    rating_list = arg1.split( /[\s,]+/ )
+    page.all('table#movies tr/td[2]').each do |tr|
+        expect(rating_list.include? tr.text).to be_truthy
+    end
 end
 
 Then /^I should see all of the movies$/ do
-  pending  #remove this statement after implementing the test step
+    #add one to consider the title header
+    page.all('table#movies tr').count.should == Movie.all.count + 1
 end
 
 
